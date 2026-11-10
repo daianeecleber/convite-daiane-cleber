@@ -1,7 +1,6 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-<link rel="icon" type="image/svg+xml" href="./favicon.svg">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Daiane &amp; Cleber · Convite de casamento</title>
@@ -14,9 +13,6 @@
 html,body{margin:0;background:#EDE5D3}
 a{text-decoration:none}
 button{font-family:inherit}
-</style>
-<style>
-#music-toggle{position:fixed;right:17px;bottom:18px;z-index:9999;width:44px;height:44px;border:1px solid #d4b36a;border-radius:50%;background:#fffaf1;color:#92703a;box-shadow:0 2px 12px #0002;display:none;align-items:center;justify-content:center;cursor:pointer;font-size:21px;line-height:1}#music-toggle:focus-visible{outline:2px solid #92703a;outline-offset:3px}
 </style>
 </head>
 <body>
@@ -71,7 +67,7 @@ button{font-family:inherit}
 <div style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; box-sizing: border-box; background: #FBF8F2; box-shadow: 0 14px 40px rgba(74,58,28,0.18); transition: transform 0.95s cubic-bezier(0.6,0.05,0.2,1), opacity 0.95s ease; " data-pg="2">
 <div style="position: absolute; top: 16px; right: 16px; bottom: 16px; left: 16px; border: 1px solid #B08D45; opacity: 0.55"></div>
 <div style="position: absolute; top: 0; right: 0; bottom: 0; left: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 48px 32px 120px; text-align: center">
-<div style="font-size: 29px; line-height: 1.4; font-style: italic; font-weight: 500; color: #B08D45; max-width: 330px">Com as bênçãos de Deus e muita alegria, convidamos você para celebrar o nosso Sacramento do Matrimônio.</div>
+<div style="font-size: 29px; line-height: 1.4; font-style: italic; font-weight: 500; color: #B08D45; max-width: 330px">Com as bênçãos de Deus e muita alegria, convidamos você para celebrar o Sacramento do nosso Matrimônio.</div>
 <div style="display: flex; align-items: center; gap: 12px; width: 100%; max-width: 220px">
 <div style="flex: 1 1 0; height: 1px; background: #B08D45"></div>
 <div style="width: 7px; height: 7px; transform: rotate(45deg); background: #B08D45"></div>
@@ -145,36 +141,10 @@ button{font-family:inherit}
 
 </div>
 
-<audio id="wedding-music" src="sem-medo-eu-vou.mp3" preload="auto"></audio>
-<button id="music-toggle" type="button" aria-label="Pausar música" title="Pausar ou tocar música">♫</button>
+<audio id="weddingMusic" preload="none" src="musica-convite.mp3"></audio>
+<button id="musicToggle" type="button" aria-label="Pausar ou reproduzir música" style="display:none;position:fixed;right:16px;bottom:18px;z-index:9999;background:#FFFDF8;color:#866b34;border:1px solid #B08D45;border-radius:999px;padding:12px 17px;font-size:14px;box-shadow:0 3px 15px #0002;cursor:pointer">♫ Pausar música</button>
 <script>
 (function () {
-  var music = document.getElementById('wedding-music');
-  var musicButton = document.getElementById('music-toggle');
-  var trechoInicio = 88, trechoFim = 364; // 01:28 a 06:04
-  function iniciarTrecho() {
-    if (music.readyState >= 1) { music.currentTime = trechoInicio; return music.play(); }
-    return new Promise(function(resolve, reject) {
-      music.addEventListener('loadedmetadata', function pronto() { music.removeEventListener('loadedmetadata', pronto); music.currentTime = trechoInicio; music.play().then(resolve, reject); }, {once:true});
-      music.load();
-    });
-  }
-  music.addEventListener('timeupdate', function () {
-    if (music.currentTime >= trechoFim) { music.currentTime = trechoInicio; if (!music.paused) music.play().catch(function(){}); }
-  });
-  music.addEventListener('ended', function () { music.currentTime = trechoInicio; music.play().catch(function(){}); });
-  function updateMusicButton() {
-    musicButton.textContent = music.paused ? '♪' : '♫';
-    musicButton.setAttribute('aria-label', music.paused ? 'Tocar música' : 'Pausar música');
-    musicButton.title = music.paused ? 'Tocar música' : 'Pausar música';
-  }
-  musicButton.addEventListener('click', function () {
-    if (music.paused) { (music.currentTime < trechoInicio || music.currentTime >= trechoFim ? iniciarTrecho() : music.play()).catch(function () { updateMusicButton(); }); }
-    else { music.pause(); }
-    updateMusicButton();
-  });
-  music.addEventListener('play', updateMusicButton);
-  music.addEventListener('pause', updateMusicButton);
   var step = 0, opened = false, last = 4;
   var pages = Array.prototype.slice.call(document.querySelectorAll('[data-pg]'));
   var flap = document.getElementById('flap'), card = document.getElementById('card'),
@@ -211,12 +181,23 @@ button{font-family:inherit}
     dots.forEach(function (d, i) { d.style.opacity = step === i + 1 ? 1 : 0.3; });
   }
 
+  var music = document.getElementById('weddingMusic');
+  var musicToggle = document.getElementById('musicToggle');
+  function syncMusicButton() { musicToggle.textContent = music.paused ? '♫ Tocar música' : '♫ Pausar música'; }
+  musicToggle.addEventListener('click', function () {
+    if (music.paused) { if (music.ended) music.currentTime = 0; music.play().catch(syncMusicButton); }
+    else music.pause();
+    syncMusicButton();
+  });
+  music.addEventListener('play', syncMusicButton);
+  music.addEventListener('pause', syncMusicButton);
+  music.addEventListener('ended', syncMusicButton);
   seal.addEventListener('click', function () {
     if (opened) return;
     opened = true;
-    musicButton.style.display = 'flex';
-    iniciarTrecho().catch(function () { updateMusicButton(); });
-    updateMusicButton();
+    musicToggle.style.display = "block";
+    music.play().catch(syncMusicButton);
+    syncMusicButton();
     render();
     setTimeout(function () { step = 1; render(); }, 1500);
   });
